@@ -23,11 +23,12 @@ class GBStatus:
         self.code = GB_OK
 
 class GBDocBond:
-    def __init__(self, series, idate, denom, sn):
+    def __init__(self, series, idate, denom, sn, note):
         self.series = series
         self.idate = idate
         self.denom = denom
         self.sn = sn
+        self.notes = note
 
 class GBDoc:
     def __init__(self):
@@ -49,6 +50,7 @@ class GBDoc:
                     "issue_date": bond.idate,
                     "denomination": bond.denom,
                     "serial_number": bond.sn,
+                    "notes": bond.notes
                 }
                 for bond in self.bonds
             ],
@@ -62,14 +64,15 @@ class GBDoc:
         writer = csv.writer(output)
 
         if include_header:
-            writer.writerow(["Series", "Denomination", "Serial Number", "Issue Date"])
+            writer.writerow(["Series", "Denomination", "Serial Number", "Issue Date", "Notes"])
 
         for bond in self.bonds:
             writer.writerow([
                 bond.series,
                 bond.denom,
                 bond.sn,
-                bond.idate
+                bond.idate,
+                bond.notes
             ])
 
         return output.getvalue()
@@ -80,7 +83,7 @@ class GBDoc:
             writer = csv.writer(file)
 
             if include_header:
-                writer.writerow(["Series", "Denomination", "Serial Number", "Issue Date"])
+                writer.writerow(["Series", "Denomination", "Serial Number", "Issue Date", "Notes"])
 
             for bond in self.bonds:
                 writer.writerow([
@@ -88,6 +91,7 @@ class GBDoc:
                     bond.denom,
                     bond.sn,
                     bond.idate,
+                    bond.notes
 
                 ])
 
@@ -97,9 +101,9 @@ class GBDoc:
 def gb_doc_new():
     return GBDoc()
 
-def gb_doc_bond_new(series, idate, denom, sn, status):
+def gb_doc_bond_new(series, idate, denom, sn, note, status):
     try:
-        return GBDocBond(series, idate, float(denom), sn)
+        return GBDocBond(series, idate, float(denom), sn, note)
     except Exception:
         status.code = GB_ERROR_OPEN_SBW_PARSE
         return None
@@ -137,7 +141,7 @@ def read_sbw2(fp, status):
         series = fields[2].strip().strip('"')
         idate = fields[3].strip().strip('"')
 
-        bond = gb_doc_bond_new(series, idate, denom, sn, status)
+        bond = gb_doc_bond_new(series, idate, denom, sn, "",status)
         if status.code != GB_OK:
             return None
         doc.add_bond(bond)
@@ -168,10 +172,10 @@ def read_sbw4(fp, status):
         denom = unpacked[6]
         idate = unpacked[10]
 
-        # Read notes (ignore contents)
+        # Read notes
         n_bytes = struct.unpack('<B', fp.read(1))[0]
         if n_bytes > 0:
-            fp.read(n_bytes)
+            note = fp.read(n_bytes).decode('utf-8')
 
         # Serial number
         sn = ""
@@ -190,7 +194,7 @@ def read_sbw4(fp, status):
 
         if series.upper() in ["E", "S", "EE", "I"]:
             idate_string = gb_date_fmt(idate)
-            bond = gb_doc_bond_new(series, idate_string, denom, sn, status)
+            bond = gb_doc_bond_new(series, idate_string, denom, sn, note, status)
             if status.code != GB_OK:
                 return None
             doc.add_bond(bond)
@@ -300,8 +304,8 @@ csv_file = "savings_bonds.csv"
 pretty = "--pretty"
 
 csv_file = "" # Blank for display only
-export_sbw_to_json(sbw_file, pretty=pretty)
-#export_sbw_to_csv(sbw_file, csv_file)
+#export_sbw_to_json(sbw_file, pretty=pretty)
+export_sbw_to_csv(sbw_file, csv_file)
 
 print(f"Conversion complete.")
 
