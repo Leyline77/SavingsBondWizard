@@ -272,10 +272,10 @@ def main():
         print(json_output)
 
 
-if __name__ == "__main__":
-    main()
-
-exit()
+"""
+#if __name__ == "__main__":
+#    main()
+#exit()
 
 # Example usage
 if __name__ == "__main__":
@@ -290,6 +290,7 @@ if __name__ == "__main__":
 
     #if csv
         export_sbw_to_csv(sbw_file, csv_file)
+"""
 
 # Dev Use - hardcode options
 sbw_file = "savings_bonds.sbw"
@@ -299,8 +300,8 @@ csv_file = "savings_bonds.csv"
 pretty = "--pretty"
 
 csv_file = "" # Blank for display only
-# export_sbw_to_json(sbw_file, pretty=pretty)
-export_sbw_to_csv(sbw_file, csv_file)
+export_sbw_to_json(sbw_file, pretty=pretty)
+#export_sbw_to_csv(sbw_file, csv_file)
 
-print(f"Conversion complete. Data shown as JSON.")
+print(f"Conversion complete.")
 
